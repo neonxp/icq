@@ -1,13 +1,3 @@
-# ICQ Bot API
-
-## Working
-
-* SendMessage
-* SendFile
-
-## Example
-
-```go
 package main
 
 import (
@@ -39,4 +29,3 @@ func main() {
 	}
 	b.SendMessage("429950", file)
 }
-```
