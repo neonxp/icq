@@ -1,5 +1,12 @@
 # ICQ Bot API
 
+## Installation
+
+Go get: `go get gopkg.in/icq.v1`
+
+Go mod / Go dep: `import "gopkg.in/icq.v1"`
+
+
 ## Working
 
 Methods:
@@ -23,7 +30,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-icq/icq"
+	"gopkg.in/icq.v1"
 )
 
 func main() {

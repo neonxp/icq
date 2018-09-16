@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-icq/icq"
+	"gopkg.in/icq.v1"
 )
 
 func main() {
