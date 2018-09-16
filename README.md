@@ -2,8 +2,12 @@
 
 ## Working
 
+Methods:
+
 * SendMessage
-* SendFile
+* UploadFile
+
+Webhooks to get updates
 
 ## Example
 
@@ -11,9 +15,12 @@
 package main
 
 import (
-	"github.com/go-icq/icq"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
+
+	"github.com/go-icq/icq"
 )
 
 func main() {
@@ -38,5 +45,20 @@ func main() {
 		panic(err)
 	}
 	b.SendMessage("429950", file)
+
+	// Webhook usage
+	updates := make(chan icq.Update)
+	errors := make(chan error)
+	http.HandleFunc("/webhook", b.GetWebhookHandler(updates, errors))
+	go http.ListenAndServe(":8080", nil)
+	for {
+		select {
+		case u := <-updates:
+			log.Println("Incomming message", u)
+			b.SendMessage(u.Update.From.ID, fmt.Sprintf("You sent me: %s", u.Update.Text))
+		case err := <-errors:
+			log.Fatalln(err)
+		}
+	}
 }
 ```
