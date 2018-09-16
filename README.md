@@ -15,10 +15,13 @@ Webhooks to get updates
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/go-icq/icq"
 )
@@ -30,7 +33,7 @@ func main() {
 	// Send message
 	r, err := b.SendMessage("429950", "Hello, world!")
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	log.Println(r.State)
 
@@ -38,26 +41,40 @@ func main() {
 	f, err := os.Open("./example/icq.png")
 	defer f.Close()
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	file, err := b.UploadFile("icq.png", f)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	b.SendMessage("429950", file)
 
 	// Webhook usage
 	updates := make(chan icq.Update)
 	errors := make(chan error)
-	http.HandleFunc("/webhook", b.GetWebhookHandler(updates, errors))
-	go http.ListenAndServe(":8080", nil)
+	osSignal := make(chan os.Signal, 1)
+
+	m := http.NewServeMux()
+	m.HandleFunc("/webhook", b.GetWebhookHandler(updates, errors)) // Webhook sets here
+
+	h := &http.Server{Addr: ":8080", Handler: m}
+	go func() {
+		log.Fatalln(h.ListenAndServe())
+	}()
+	signal.Notify(osSignal, os.Interrupt)
+	signal.Notify(osSignal, os.Kill)
 	for {
 		select {
 		case u := <-updates:
 			log.Println("Incomming message", u)
 			b.SendMessage(u.Update.From.ID, fmt.Sprintf("You sent me: %s", u.Update.Text))
+			// ... process ICQ updates ...
 		case err := <-errors:
 			log.Fatalln(err)
+		case sig := <-osSignal:
+			ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+			h.Shutdown(ctx)
+			log.Fatalln("OS signal:", sig.String())
 		}
 	}
 }
