@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -23,7 +22,6 @@ type API struct {
 	token   string
 	baseUrl string
 	client  Doer
-	mu      *sync.Mutex
 }
 
 // NewAPI constructor of API object
@@ -31,15 +29,12 @@ func NewAPI(token string) *API {
 	return &API{
 		token:   token,
 		baseUrl: "https://botapi.icq.net",
-		mu:      new(sync.Mutex),
 		client:  http.DefaultClient,
 	}
 }
 
 // SendMessage with `message` text to `to` participant
 func (a *API) SendMessage(message Message) (*MessageResponse, error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
 	parse, _ := json.Marshal(message.Parse)
 	v := url.Values{}
 	v.Set("aimsid", a.token)
@@ -66,8 +61,6 @@ func (a *API) SendMessage(message Message) (*MessageResponse, error) {
 
 // UploadFile to ICQ servers and returns URL to file
 func (a *API) UploadFile(fileName string, r io.Reader) (*FileResponse, error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
 	v := url.Values{}
 	v.Set("aimsid", a.token)
 	v.Set("filename", fileName)
