@@ -2,9 +2,9 @@
 
 ## Installation
 
-Go get: `go get gopkg.in/icq.v1`
+Go get: `go get gopkg.in/icq.v2`
 
-Go mod / Go dep: `import "gopkg.in/icq.v1"`
+Go mod / Go dep: `import "gopkg.in/icq.v2"`
 
 
 ## Working
@@ -38,7 +38,7 @@ func main() {
 	b := icq.NewAPI(os.Getenv("ICQ_TOKEN"))
 
 	// Send message
-	r, err := b.SendMessage("429950", "Hello, world!")
+	r, err := b.SendMessage(icq.Message{To: "429950", Text: "Hello, world!"})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -54,7 +54,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	b.SendMessage("429950", file)
+	b.SendMessage(icq.Message{To: "429950", Text: file.StaticUrl})
 
 	// Webhook usage
 	updates := make(chan icq.Update)
@@ -74,7 +74,10 @@ func main() {
 		select {
 		case u := <-updates:
 			log.Println("Incomming message", u)
-			b.SendMessage(u.Update.From.ID, fmt.Sprintf("You sent me: %s", u.Update.Text))
+			b.SendMessage(icq.Message{
+				To:   u.Update.Chat.ID,
+				Text: fmt.Sprintf("You sent me: %s", u.Update.Text),
+			})
 			// ... process ICQ updates ...
 		case err := <-errors:
 			log.Fatalln(err)
