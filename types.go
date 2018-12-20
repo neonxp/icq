@@ -8,6 +8,19 @@ type Response struct {
 		Data       *MessageResponse `json:"data"`
 	} `json:"response"`
 }
+type ParseType string
+
+const (
+	ParseURL         ParseType = "url"
+	ParseFilesharing           = "filesharing"
+)
+
+type Message struct {
+	To       string
+	Text     string
+	Mentions []string
+	Parse    []ParseType
+}
 
 type MessageResponse struct {
 	SubCode struct {
@@ -16,6 +29,18 @@ type MessageResponse struct {
 	MessageID        string `json:"msgId"`
 	HistoryMessageID int64  `json:"histMsgId"`
 	State            string `json:"state"`
+}
+
+type FileResponse struct {
+	StaticUrl     string `json:"static_url"`
+	MimeType      string `json:"mime"`
+	SnapID        string `json:"snapId"`
+	TtlID         string `json:"ttl_id"`
+	IsPreviewable int    `json:"is_previewable"`
+	FileID        string `json:"fileid"`
+	FileSize      int    `json:"filesize"`
+	FileName      string `json:"filename"`
+	ContentID     string `json:"content_id"`
 }
 
 type WebhookRequest struct {

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -36,25 +37,23 @@ func NewAPI(token string) *API {
 }
 
 // SendMessage with `message` text to `to` participant
-func (a *API) SendMessage(to string, message string) (*MessageResponse, error) {
+func (a *API) SendMessage(message Message) (*MessageResponse, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	v := url.Values{
-		"aimsid":  []string{a.token},
-		"r":       []string{strconv.FormatInt(time.Now().Unix(), 10)},
-		"t":       []string{to},
-		"message": []string{message},
+	parse, _ := json.Marshal(message.Parse)
+	v := url.Values{}
+	v.Set("aimsid", a.token)
+	v.Set("r", strconv.FormatInt(time.Now().Unix(), 10))
+	v.Set("t", message.To)
+	v.Set("message", message.Text)
+	v.Set("mentions", strings.Join(message.Mentions, ","))
+	if len(message.Parse) > 0 {
+		v.Set("parse", string(parse))
 	}
-	req, err := http.NewRequest(http.MethodGet, a.baseUrl+"/im/sendIM?"+v.Encode(), nil)
+	b, err := a.send("/im/sendIM", v)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	b, err := ioutil.ReadAll(resp.Body)
 	r := &Response{}
 	if err := json.Unmarshal(b, r); err != nil {
 		return nil, err
@@ -66,33 +65,29 @@ func (a *API) SendMessage(to string, message string) (*MessageResponse, error) {
 }
 
 // UploadFile to ICQ servers and returns URL to file
-func (a *API) UploadFile(fileName string, r io.Reader) (string, error) {
+func (a *API) UploadFile(fileName string, r io.Reader) (*FileResponse, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	v := url.Values{"aimsid": []string{a.token}, "filename": []string{fileName}}
+	v := url.Values{}
+	v.Set("aimsid", a.token)
+	v.Set("filename", fileName)
 	req, err := http.NewRequest(http.MethodPost, a.baseUrl+"/im/sendFile?"+v.Encode(), r)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
-	rb, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
+	b, err := ioutil.ReadAll(resp.Body)
 	file := struct {
-		Data struct {
-			StaticUrl string `json:"static_url"`
-		} `json:"data"`
+		Data FileResponse `json:"data"`
 	}{}
-
-	if err := json.Unmarshal(rb, &file); err != nil {
-		return "", err
+	if err := json.Unmarshal(b, &file); err != nil {
+		return nil, err
 	}
-	return file.Data.StaticUrl, nil
+	return &file.Data, nil
 }
 
 // GetWebhookHandler returns http.HandleFunc that parses webhooks
@@ -117,4 +112,25 @@ func (a *API) GetWebhookHandler(cu chan<- Update, e chan<- error) func(w http.Re
 			cu <- u
 		}
 	}
+}
+
+func (a *API) send(path string, v url.Values) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodPost, a.baseUrl+path, strings.NewReader(v.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return b, fmt.Errorf("ICQ API error. Code=%d Message=%s", resp.StatusCode, string(b))
+	}
+	return b, nil
 }
