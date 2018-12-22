@@ -22,10 +22,10 @@ func ParseCommand(event *IMEvent) (*Command, bool) {
 	if parts[0][0] != '.' && parts[0][0] != '/' {
 		return nil, false
 	}
-
+	cmd := string(parts[0][1:])
 	return &Command{
 		From:      event.Data.Source.AimID,
-		Command:   string(parts[0][1:]),
+		Command:   strings.ToLower(cmd),
 		Arguments: parts[1:],
 	}, true
 }
