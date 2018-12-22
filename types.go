@@ -8,6 +8,7 @@ type Response struct {
 		Data       *MessageResponse `json:"data"`
 	} `json:"response"`
 }
+
 type ParseType string
 
 const (
@@ -65,4 +66,16 @@ type Chat struct {
 type User struct {
 	ID           string `json:"id"`
 	LanguageCode string `json:"language_code"`
+}
+
+type Buddy struct {
+	AimID         string   `json:"aimId"`
+	DisplayID     string   `json:"displayId"`
+	FriendlyName  string   `json:"friendly"`
+	State         string   `json:"state"`
+	UserType      string   `json:"userType"`
+	UserAgreement []string `json:"userAgreement"`
+	Nick          string   `json:"nick"`
+	GlobalFlags   int      `json:"globalFlags"`
+	BuddyIcon     string   `json:"buddyIcon"`
 }
