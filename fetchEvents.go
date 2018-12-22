@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -76,7 +75,7 @@ func (a *API) FetchEvents(ctx context.Context, ch chan interface{}) error {
 				}
 				ch <- ev
 			default:
-				log.Printf("Unknown event %s: %#v", ce.Type, e)
+				ch <- ce
 			}
 		}
 		select {
