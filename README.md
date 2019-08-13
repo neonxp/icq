@@ -8,6 +8,24 @@
 Основана на новом Bot Api (https://icq.com/botapi/)
 
 Реализованы все методы и соответствуют документации.
+## Методы
+```go
+api.Events.Get(ctx context.Context) <-chan EventInterface
+api.Self.Get() (*Bot, error)
+api.Messages.SendText(chatID string, text string, replyMsgID []string, forwardChatID string, forwardMsgID string) (*Msg, error)
+api.Messages.SendExistsFile(chatID string, fileID string, caption string, replyMsgID []string, forwardChatID string, forwardMsgID string) (*Msg, error)
+api.Messages.SendFile(chatID string, fileName string, caption string, replyMsgID []string, forwardChatID string, forwardMsgID string) (*MsgLoadFile, error)
+api.Messages.SendExistsVoice(chatID string, fileID string, replyMsgID []string, forwardChatID string, forwardMsgID string) (*Msg, error)
+api.Messages.SendVoice(chatID string, fileName string, replyMsgID []string, forwardChatID string, forwardMsgID string) (*MsgLoadFile, error)
+api.Messages.EditText(chatID string, text string, msgID string) (bool, error)
+api.Messages.DeleteMessages(chatID string, msgIDs []string) (bool, error)
+api.Chats.SendActions(chatID string, actions []ChatAction) (bool, error)
+api.Chats.GetInfo(chatID string) (*Chat, error)
+api.Chats.GetAdmins(chatID string) (*Admins, error)
+api.Files.GetInfo(fileID string) (*FileInfo, error)
+```
+
+Типы можно увидеть в http://godoc.org/github.com/go-icq/icq
 
 ## Пример
 
