@@ -1,3 +1,5 @@
+# Проект архивирован потому что появилась официальная библиотека https://github.com/mail-ru-im/bot-golang
+
 # ICQ Bot Api Go
 
 [![Sourcegraph](https://sourcegraph.com/github.com/go-icq/icq/-/badge.svg?style=flat-square)](https://sourcegraph.com/github.com/go-icq/icq?badge)
